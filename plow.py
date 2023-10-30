@@ -130,18 +130,14 @@ async def watch_directory(paths, plot_queue):
         while True:
             try:
                 # List all files in the directory
-                files = os.listdir(path)
-                file_path = ""
-                for file in files:
-                    if file.endswith(PLOT_EXT):
-                        file_path = os.path.join(path, file)
-
+                plots = Path(path).glob("**/*" + PLOT_EXT)
+                for plot in plots:
                     # Check if the file is new and not processed
-                    if file_path and os.path.isfile(file_path) and file_path not in processed_files:
+                    if plot.as_posix() not in processed_files:
                         # Add the new file to the queue
-                        await plot_queue.put(Path(file_path))
-                        processed_files.add(file_path)
-                        print(f"🍃 Added {file} to the plot queue")
+                        await plot_queue.put(plot)
+                        processed_files.add(plot.as_posix())
+                        print(f"🍃 Added {plot} to the plot queue")
 
                 await asyncio.sleep(60)  # Check for new files every 60 seconds
             except Exception as e:
